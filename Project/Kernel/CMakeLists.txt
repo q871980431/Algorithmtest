@@ -1,0 +1,175 @@
+SET(KERNEL_DIR
+	"${PROJECT_SOURCE_DIR}/Kernel"
+)
+SET( KERNEL
+	"${KERNEL_DIR}/main.cpp"
+	"${KERNEL_DIR}/Kernel.h"
+	"${KERNEL_DIR}/Kernel.cpp"
+)
+
+SET(KERNEL_INTERFACE_DIR
+	"${KERNEL_DIR}/Interface"
+)
+SET(KERNEL_INTERFACE
+	"${KERNEL_INTERFACE_DIR}/IApplication.h"
+	"${KERNEL_INTERFACE_DIR}/ICore.h"
+	"${KERNEL_INTERFACE_DIR}/ILogger.h"
+	"${KERNEL_INTERFACE_DIR}/IConfigmgr.h"
+	"${KERNEL_INTERFACE_DIR}/IModulemgr.h"
+	"${KERNEL_INTERFACE_DIR}/INetEngine.h"	
+	"${KERNEL_INTERFACE_DIR}/ITimerMgr.h"	
+	"${KERNEL_INTERFACE_DIR}/IFrameMgr.h"	
+)
+
+SET(KERNEL_LOG_DIR	"${KERNEL_DIR}/Log")
+SET(KERNEL_LOG
+	"${KERNEL_LOG_DIR}/LogFile.h"
+	"${KERNEL_LOG_DIR}/LogFile.cpp"
+	"${KERNEL_LOG_DIR}/Logger.h"
+	"${KERNEL_LOG_DIR}/Logger.cpp"
+)
+
+SET(KERNEL_CONFIG_DIR	"${KERNEL_DIR}/Config")
+SET(KERNEL_CONFIG
+	"${KERNEL_CONFIG_DIR}/Configmgr.cpp"
+	"${KERNEL_CONFIG_DIR}/Configmgr.h"
+)
+
+SET(KERNEL_MODULE_DIR	"${KERNEL_DIR}/Module")
+SET(KERNEL_MODULE
+	"${KERNEL_MODULE_DIR}/Modulemgr.cpp"
+	"${KERNEL_MODULE_DIR}/Modulemgr.h"
+)
+
+SET(KERNEL_NET_DIR	"${KERNEL_DIR}/Net")
+SET(KERNEL_NET
+	"${KERNEL_NET_DIR}/NetEngine.cpp"
+	"${KERNEL_NET_DIR}/NetEngine.h"
+    "${KERNEL_NET_DIR}/NetConnection.cpp"
+	"${KERNEL_NET_DIR}/NetConnection.h"
+)
+
+SET( KERNEL_TIMER_DIR "${KERNEL_DIR}/Timer")
+SET( KERNEL_TIMER
+	"${KERNEL_TIMER_DIR}/TimerMgr.cpp"
+	"${KERNEL_TIMER_DIR}/TimerMgr.h"
+   	"${KERNEL_TIMER_DIR}/TimerWheel.cpp"
+	"${KERNEL_TIMER_DIR}/TimerWheel.h"
+)
+
+SET( KERNEL_FRAME_DIR "${KERNEL_DIR}/Frame")
+SET( KERNEL_FRAME
+	"${KERNEL_FRAME_DIR}/FrameMgr.cpp"
+	"${KERNEL_FRAME_DIR}/FrameMgr.h"
+)
+
+
+
+IF(WIN32)
+	INCLUDE_DIRECTORIES(
+		${API_DIR}
+		${PUBLIC_DIR}
+		${KERNEL_INTERFACE_DIR}
+		${KERNEL_LOG_DIR}
+		${THIRD_LIBRARIES_INCLUDE_DIR}/DbgHelp.h
+		${THIRD_LIBRARIES_INCLUDE_DIR}/libevent/include
+		${KERNEL_CONFIG_DIR}
+        ${2D_DIR}
+		${COMMON_TIME_DIR}
+		${TINYXML_DIR}
+        ${KERNEL_MODULE_DIR}
+		${KERNEL_NET_DIR}
+		${KERNEL_TIMER_DIR}
+		${KERNEL_FRAME_DIR}
+	)
+ENDIF(WIN32)
+
+IF(LINUX)
+	INCLUDE_DIRECTORIES(
+                ${API_DIR}
+                ${PUBLIC_DIR}
+                ${KERNEL_INTERFACE_DIR}
+                ${KERNEL_LOG_DIR}
+				${THIRD_LIBRARIES_INCLUDE_DIR}/libevent/include				
+                ${KERNEL_CONFIG_DIR}
+				${KERNEL_MODULE_DIR}
+				${COMMON_TIME_DIR}
+				${TINYXML_DIR}
+				${KERNEL_MODULE_DIR}
+				${KERNEL_NET_DIR}
+				${KERNEL_TIMER_DIR}
+				${KERNEL_FRAME_DIR}				
+        )
+ENDIF(LINUX)
+MESSAGE("test")
+MESSAGE(STATUS ${COMMON_TIME})
+SOURCE_GROUP( Api	FILES ${API})
+SOURCE_GROUP( Public\\Tinyxml FILES ${TINYXML})
+SOURCE_GROUP(Public\\2D FILES ${2D})
+SOURCE_GROUP(Public\\time FILES ${COMMON_TIME})
+SOURCE_GROUP( Public FILES ${PUBLIC})
+SOURCE_GROUP( Src\\Interface FILES ${KERNEL_INTERFACE})
+SOURCE_GROUP( Src\\Log FILES ${KERNEL_LOG})
+SOURCE_GROUP( Src\\Config FILES ${KERNEL_CONFIG})
+SOURCE_GROUP( Src\\Module FILES ${KERNEL_MODULE})
+SOURCE_GROUP( Src\\Net FILES ${KERNEL_NET})
+SOURCE_GROUP( Src\\Timer FILES ${KERNEL_TIMER})
+SOURCE_GROUP( Src\\Frame FILES ${KERNEL_FRAME})
+SOURCE_GROUP( Src FILES ${KERNEL})
+
+
+IF(WIN32)
+	SET(THIRD_LIB_DEBUG
+	debug "${THIRD_LIBRARIES_DEBUG_DIR}/DbgHelp.Lib"
+	debug "${THIRD_LIBRARIES_DEBUG_DIR}/libevent.lib"
+	debug "${THIRD_LIBRARIES_DEBUG_DIR}/libevent_core.lib"
+	debug "${THIRD_LIBRARIES_DEBUG_DIR}/libevent_extras.lib"
+	"ws2_32.lib"
+	"wsock32.lib"
+	)
+	SET(THIRD_LIB_RELEASE
+	    optimized "${THIRD_LIBRARIES_RELEASE_DIR}/libevent.lib"
+	    optimized "${THIRD_LIBRARIES_RELEASE_DIR}/libevent_core.lib"
+	    optimized "${THIRD_LIBRARIES_RELEASE_DIR}/libevent_extras.lib"
+	    optimized "ws2_32.lib"
+	    optimized "wsock32.lib"
+	)
+ENDIF(WIN32)
+
+IF(LINUX)
+	SET(THIRD_LIB_DEBUG
+	)
+	SET(THIRD_LIB_RELEASE
+	    optimized "${THIRD_LIBRARIES_RELEASE_DIR}/libevent.a"
+	    optimized "${THIRD_LIBRARIES_RELEASE_DIR}/libevent_core.a"
+	    optimized "${THIRD_LIBRARIES_RELEASE_DIR}/libevent_extra.a"
+	)
+ENDIF(LINUX)
+
+ADD_EXECUTABLE( NetGrid
+				${PUBLIC}
+				${API}
+				${KERNEL_INTERFACE}
+				${KERNEL_LOG}
+                ${KERNEL_CONFIG}
+				${KERNEL_MODULE}
+				${KERNEL_NET}
+				${KERNEL_TIMER}
+				${KERNEL_FRAME}
+				${KERNEL}
+				${TINYXML}
+                ${2D}
+				${COMMON_TIME}
+)
+
+IF(WIN32)
+	SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/windows/")
+ENDIF(WIN32)
+IF(LINUX)
+	SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/linux/")
+ENDIF(LINUX)
+
+TARGET_LINK_LIBRARIES(	NetGrid
+	${THIRD_LIB_DEBUG}
+	${THIRD_LIB_RELEASE}
+)
