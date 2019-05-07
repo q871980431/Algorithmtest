@@ -77,11 +77,15 @@ namespace tlib
                     node->_next = _head;
                     node->_host = this;
 
-                    if (_head == nullptr)
-                        _tail = node;
+					if (_head == nullptr)
+					{
+						_tail = node;
+						_tail->_next = nullptr;
+					}
                     else
                         _head->_prev = node;
                     _head = node;
+					_head->_prev = nullptr;
                     ++_size;
                 }
             }
@@ -94,11 +98,15 @@ namespace tlib
                     node->_prev = _tail;
                     node->_host = this;
 
-                    if (_tail == nullptr)
-                        _head = node;
+					if (_tail == nullptr)
+					{
+						_head = node;
+						_head->_prev = nullptr;
+					}
                     else
                         _tail->_next = node;
                     _tail = node;
+					_tail->_next = nullptr;
                     ++_size;
                 }
             }
