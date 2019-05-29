@@ -42,6 +42,8 @@ namespace leetcode
 		IRankNode * Insert(s32 score, s32 id);
 		bool		Delete(s32 score, s32 id);
 		IRankNode * GetRankNodeByRank(u32 rank);
+		s32			GetRank(s32 score, s32 id);
+		void		Printf();
 	protected:
 
 	private:

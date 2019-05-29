@@ -7,6 +7,7 @@
 #include "SkipList.h"
 #include "LeetCode.h"
 #include "Tools.h"
+#include <set>
 namespace leetcode {
 
 	IRankList::IRankList(s32 level /* = RANK_LEVEL */)
@@ -32,7 +33,7 @@ namespace leetcode {
 		s32 i, level;
 		for (i = _level-1; i >= 0; i--)
 		{
-			rank[i] = (_level - 1) ? 0 : rank[i + 1];
+			rank[i] = (i == (_level - 1)) ? 0 : rank[i + 1];
 			while (x->_level[i]._next && 
 				(x->_level[i]._next->_score < score || 
 					(x->_level[i]._next->_score == score && x->_level[i]._next->_id < id)
@@ -58,6 +59,7 @@ namespace leetcode {
 		}
 
 		x = CreateNode(level, score);
+		x->_id = id;
 		for (i = 0; i < level; i++)
 		{
 			x->_level[i]._next = update[i]->_level[i]._next;
@@ -87,7 +89,7 @@ namespace leetcode {
 		IRankNode *update[RANK_MAX_LEVEL];
 		IRankNode *x = _header;
 		s32 i = 0;
-		for (i = _level - 1; i >= 0; i++)
+		for (i = _level - 1; i >= 0; i--)
 		{
 			while (x->_level[i]._next &&
 				(x->_level[i]._next->_score < score ||
@@ -97,10 +99,10 @@ namespace leetcode {
 				x = x->_level[i]._next;
 			update[i] = x;
 		}
-		x = update[i];	//update[0] == x->_level[0]._next;
+		x = x->_level[0]._next;	
 		if (x && score == x->_score && id == x->_id)
 		{
-
+			DeleteNode(x, update);
 			return true;
 		}
 		return false;
@@ -111,7 +113,7 @@ namespace leetcode {
 		IRankNode *x = _header;
 		u32 traversed = 0;
 		s32 i = 0;
-		for ( i = _level - 1; i >= 0; i++)
+		for ( i = _level - 1; i >= 0; i--)
 		{
 			while (x->_level[i]._next && traversed + x->_level[i].span <= rank)
 			{
@@ -125,10 +127,48 @@ namespace leetcode {
 		return nullptr;
 	}
 
+	s32 IRankList::GetRank(s32 score, s32 id)
+	{
+		IRankNode *x = _header;
+		u32 rank[RANK_MAX_LEVEL];
+		s32 i = 0;
+		for (i = _level -1; i >= 0; i--)
+		{
+			rank[i] = (i == _level - 1) ? 0 : rank[i + 1];
+			while (x->_level[i]._next && x->_level[i]._next->_score <= score)
+			{
+				rank[i] += x->_level[i].span;
+				if (x->_level[i]._next->_score == score && x->_level[i]._next->_id == id)
+					return rank[i];
+
+				x = x->_level[i]._next;
+			}
+		}
+
+		return 0;
+	}
+
+	void IRankList::Printf()
+	{
+		ECHO("-------Printf----------");
+		s32 i = 0;
+		for ( i = _level - 1; i >= 0; i--)
+		{
+			ECHO("Level = %d *******, Head Span:%d", i, _header->_level[i].span);
+			IRankNode * x = _header;
+			while (x->_level[i]._next)
+			{
+				ECHO("Node[%d], score:%d, span:%d", x->_level[i]._next->_id, x->_level[i]._next->_score, x->_level[i]._next->_level[i].span);
+				x = x->_level[i]._next;
+			}
+		}
+	}
+
 	IRankNode * IRankList::CreateNode(s32 level, s32 score)
 	{
 		IRankNode *node = NEW IRankNode();
 		node->_level = (RankLevel *)malloc(sizeof(RankLevel) * level);
+		tools::SafeMemset(node->_level, sizeof(RankLevel) * level, 0, sizeof(RankLevel) * level);
 		node->_score = score;
 		return node;
 	}
@@ -191,8 +231,31 @@ namespace leetcode {
 		_length--;
 	}
 
+	LeetCodeRegister<SkipListTest> test;
 	void SkipListTest::StartTest(core::IKernel *kernel)
 	{
+		IRankList rankList;
+		for (s32 i = 0; i < 10; i++)
+		{
+			rankList.Insert(i, i);
+		}
+		rankList.Insert(3, 4);
+		rankList.Printf();
+		IRankNode *node = rankList.GetRankNodeByRank(1);
+		std::set<s32> ids;
+		s32 i = 0;
+		while (node&& i < 3)
+		{
+			ids.insert(node->_id);
+			node = node->_level->_next;
+			i++;
+		}
 
+		rankList.Delete(3, 3);
+		rankList.Printf();
+		s32 rank = rankList.GetRank(3, 4);
+		rankList.Delete(3, 4);
+		s32 rank2 = rankList.GetRank(3, 4);
+		rankList.Printf();
 	}
 }
