@@ -1,59 +1,64 @@
 #include "TimerWheel.h"
 #include "Tools_time.h"
 #include "TimerMgr.h"
+#include "../Exception/ExceptionMgr.h"
+
 using namespace tlib::linear;
 tlib::TDynPool<TimerBase> TimerBase::s_pool;
 
 void TimerBase::Exec(core::IKernel *kernel, s64 tick)
 {
-	if (!_kill)
+	_canRelease = false;
+	if (_frist)
 	{
-		if (_frist)
-		{
-			_timer->OnStart(kernel, tick);
-			_frist = false;
-		}
-		else
-			_timer->OnTime(kernel, tick);
-		if (0 != _count)
-		{
-			if (_count != FOREVER)
-				--_count;
-			TimerWheel *tmp = _wheel;
-            s32 expires = (_expires - _wheel->GetJiffies()) + _interval;
-			_wheel = nullptr;
-            tmp->AddTimer(this, expires);
-		}
-		else
-		{
-			End(kernel, tick);
-			Release();
-		}
+		TRY_BEGIN
+		_timer->OnStart(kernel, tick);
+		TRY_END
+		_frist = false;
 	}
-	else {
-		End(kernel, tick);
-		Release();
+	else
+	{
+		TRY_BEGIN
+		_timer->OnTime(kernel, tick);
+		TRY_END
+	}
+	_canRelease = true;
+	if (0 != _count)
+	{
+		if (_count != FOREVER)
+			--_count;
+		_expires = _wheel->GetJiffies() + _interval;
+        _wheel->AddTimer(this);
+	}
+	else
+	{
+		End(kernel, tick, false);
 	}
 }
 
 void TimerBase::Kill(core::IKernel *kernel, s64 tick)
 {
-	_kill = true;
 	_count = 0;
-	End(kernel, tick);
+	if (!_remove)
+		End(kernel, tick, true);
 }
 
-void TimerBase::End(core::IKernel *kernel, s64 tick)
+void TimerBase::End(core::IKernel *kernel, s64 tick, bool isKill)
 {
 	if (!_remove)
 	{
-		_timer->SetBase(nullptr);
-		_timer->OnTerminate(kernel, tick);
 		_remove = true;
+		_timer->SetBase(nullptr);
+		TRY_BEGIN
+		_timer->OnTerminate(kernel, tick, isKill);
+		TRY_END
+		_host->Remove(this);
 	}
+	if (_canRelease)
+		Release();
 }
 
-void TimerWheel::AddTimer(TimerBase *timer, s32 expires)
+void TimerWheel::AddTimer(TimerBase *timer, s64 delay)
 {
 	if (timer->GetTimerWheel() != nullptr)
 	{
@@ -61,8 +66,7 @@ void TimerWheel::AddTimer(TimerBase *timer, s32 expires)
 		return;
 	}
 	timer->SetTimerWheel(this);
-	expires = _jiffies + expires / JIFFIES_TIME;
-	timer->SetExpires(expires);
+	timer->SetExpires(_jiffies + delay / JIFFIES_TIME);
 
 	AddTimer(timer);
 	return;
@@ -74,7 +78,7 @@ void TimerWheel::Process(core::IKernel *kernel, s32 tick)
 {
 	s64 now = tools::GetTimeMillisecond();
 
-	s64 jiffies = GetJiffies(now);
+	auto jiffies = GetJiffies(now);
 	while (jiffies > _jiffies)
 	{
 		LinkList workList;
@@ -111,8 +115,8 @@ s32 TimerWheel::Cascade(TVEC_NODE *tvec, s32 index)
 
 void TimerWheel::AddTimer(TimerBase *timer)
 {
-	u32 expires = timer->GetExpires();
-	u32 idx = expires - _jiffies;
+	JiffiesT expires = timer->GetExpires();
+	JiffiesT idx = expires - _jiffies;
 	LinkList *vec;
 
 	if (idx < TVR_SIZE) {
@@ -140,6 +144,11 @@ void TimerWheel::AddTimer(TimerBase *timer)
 	}
 	else {
 		s32 i;
+		if (idx > 0xFFFFFFFFUL)
+		{
+			idx = 0xFFFFFFFFUL;
+			expires = idx + _jiffies;
+		}
 		i = (expires >> (TVR_BITS + 3 * TVN_BITS)) & TVN_MASK;
 		vec = _tvec_node[3].vec + i;
 	}

@@ -9,7 +9,7 @@ namespace leetcode
 {
 	AddingTwoNumber * AddingTwoNumber::s_self = nullptr;
 
-	LeetCodeRegister<AddingTwoNumber> test;
+	LeetCodeRegister<AddingTwoNumber> addingTwoNumbertest;
 
 	void AddingTwoNumber::StartTest(core::IKernel *kernel)
 	{

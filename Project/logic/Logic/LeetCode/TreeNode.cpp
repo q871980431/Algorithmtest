@@ -4,7 +4,7 @@
 #include <functional>
 namespace leetcode {
 
-	LeetCodeRegister<TreeNodeTest> test;
+	LeetCodeRegister<TreeNodeTest> treeNodeTest;
 	void VistNode(s32 &val)
 	{
 		printf("%d  ", val);
@@ -29,7 +29,7 @@ namespace leetcode {
 			}
 		};
 		QuckSort(id1, 9);
-		THeap<s32> heap(id1, 6);
+		THeap<s32> heap(id1, 6, 6);
 		f(id1, 6);
 		heap.HeapSort();
 		f(id1, 6);

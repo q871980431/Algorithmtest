@@ -7,7 +7,7 @@
 #include "Lrucache.h"
 #include "LeetCode.h"
 namespace leetcode {
-	LeetCodeRegister<Lrucache> test;
+	LeetCodeRegister<Lrucache> lrucacheTest;
 
 	void Lrucache::StartTest(core::IKernel *kernel)
 	{

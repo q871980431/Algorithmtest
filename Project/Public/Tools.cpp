@@ -1,8 +1,6 @@
 #include "Tools.h"
 #include <string>
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -40,6 +40,7 @@ class Logger   : public ILogger, public Singleton<Logger>
 		LogList	swap;
 		std::mutex	mutex;
 	};
+
 public:
     //virtual ~Logger(){};
 
@@ -49,17 +50,17 @@ public:
 
     virtual void SyncLog(const char *contents);
     virtual void AsyncLog(const char *contents);
+	virtual void ThreadLog(const char *contents);
 	virtual void Process(s32 tick);
-protected:
-private:
-    const char *GetLogTimeString();
 
+	s32	LogLevel() { return _logLevel; };
+private:
     void ThreadRun();
 
-    bool CreateAsyncFile();
-
 private:
-
+	const char *GetLogTimeString();
+	bool CreateLogFile(LogFile &logFile);
+	bool WriteLogNode(LogFile &logFile, const LogNode *logNode);
 
 private:
 
@@ -67,6 +68,7 @@ private:
     tlib::TString<LOG_PREFIX_LEN>   _asyncPrefix;
     tlib::TString<LOG_PREFIX_LEN>   _syncPrefix;
     LogFile _asyncFile;
+	LogFile _asyncThreadFile;		
     LogFile _syncFile;
 
     std::thread                         _thread;
@@ -76,6 +78,9 @@ private:
 
 	LogListThreadData					_write;
 	LogListThreadData					_dels;
+	LogListThreadData					_threadLog;
+	std::mutex							_threadLogMutex;
+	s32	_logLevel;
 };
 
 #define LOGGER  (Logger::GetInstancePtr())

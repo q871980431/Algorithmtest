@@ -47,6 +47,15 @@ SET(OBJECT_LIB
 	optimized "${PROJECT_BINARY_DIR}/windows/Release/ObjectMgr.lib"
 )
 
+SET(KERNEL_LIBD
+	debug "${PROJECT_BINARY_DIR}/windows/debug/NetGrid"
+)
+
+SET(KERNEL_LIB
+	optimized "${PROJECT_BINARY_DIR}/windows/Release/NetGrid"
+)
+
+
 ENDIF(WIN32)
 
 IF(LINUX)
@@ -63,6 +72,12 @@ SET(OBJECT_LIBD
 SET(OBJECT_LIB
 	optimized "${PROJECT_BINARY_DIR}/linux/libObjectMgr.so"
 )
+
+SET(KERNEL_LIBD
+)
+SET(KERNEL_LIB
+)
+
 ENDIF(LINUX)
 
 SET(API_DIR
@@ -76,7 +91,10 @@ SET(API
 SET(PUBLIC_DIR
 	"${PROJECT_SOURCE_DIR}/Public"
 )
-SET(PUBLIC
+file(GLOB PUBLIC ${PUBLIC_DIR}/*.cpp ${PUBLIC_DIR}/*.h)
+#AUX_SOURCE_DIRECTORY( )
+#MESSAGE("Public files${PUBLIC}")
+SET(PUBLIC2
 	"${PUBLIC_DIR}/MultiSys.h"
 	"${PUBLIC_DIR}/LinSys.h"
 	"${PUBLIC_DIR}/WinSys.h"
@@ -102,6 +120,8 @@ SET(PUBLIC
     "${PUBLIC_DIR}/Tools_file.h"
     "${PUBLIC_DIR}/Tools_file.cpp"
     "${PUBLIC_DIR}/TCallBack.h"	
+    "${PUBLIC_DIR}/Tools_Net.cpp"
+    "${PUBLIC_DIR}/Tools_Net.h"		
 )
 SET(TINYXML_DIR
 	"${PUBLIC_DIR}/tinyxml2"
