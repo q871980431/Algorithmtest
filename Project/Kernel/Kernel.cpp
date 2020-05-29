@@ -1,7 +1,6 @@
 #include "Kernel.h"
 #include "Tools.h"
 #include "TDynPool.h"
-#include "StopWatch.h"
 #include "Configmgr.h"
 #include "Modulemgr.h"
 #include "NetService.h"

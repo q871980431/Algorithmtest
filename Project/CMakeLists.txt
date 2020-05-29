@@ -48,11 +48,11 @@ SET(OBJECT_LIB
 )
 
 SET(KERNEL_LIBD
-	debug "${PROJECT_BINARY_DIR}/windows/debug/NetGrid"
+	debug "${PROJECT_BINARY_DIR}/windows/debug/NetGrid.lib"
 )
 
 SET(KERNEL_LIB
-	optimized "${PROJECT_BINARY_DIR}/windows/Release/NetGrid"
+	optimized "${PROJECT_BINARY_DIR}/windows/Release/NetGrid.lib"
 )
 
 
@@ -142,7 +142,6 @@ SET(COMMON_TIME_DIR
 	"${PUBLIC_DIR}/time/"
 )
 SET(COMMON_TIME
-	"${PUBLIC_DIR}/time/StopWatch.h"
 )
 
 
