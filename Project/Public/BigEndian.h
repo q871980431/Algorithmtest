@@ -1,6 +1,7 @@
 #ifndef __BIGENDIAN_H__
 #define __BIGENDIAN_H__
 
+#include <string>
 namespace endian{
 	const static int tmp = 0x4321;
 	constexpr bool IsBigEndian()
@@ -27,19 +28,32 @@ namespace endian{
 	{
 	public:
 		BigEndian() :m_size(0) {};
+		BigEndian(std::string &strContent) {
+			int32_t iLen = strContent.length();
+			if (iLen > BUFF_SIZE)
+				iLen = BUFF_SIZE;
+			memcpy(m_buff, strContent.c_str(), iLen);
+			m_size = iLen;
+		}
 
 		void Append(uint16_t val) { InnerAppend<2>(&val); };
 		void Append(uint32_t val) { InnerAppend<4>(&val); };
 		void Append(uint64_t val) { InnerAppend<8>(&val); };
+
+		template<typename T>
+		void Append(T val) { InnerAppend<sizeof(T)>(&val); };
+		template<typename T>
+		void Pick(int32_t iOffSet, T &val) { InnerPick<sizeof(T)>(iOffSet, &val); };
+
 		template<typename ...Args>
 		void Append(Args... args)
 		{
-			int32_t a[] = { (Append(args), 0)... };
+			std::initializer_list<int32_t> {(Append(args), 0)...};
 		}
 
 		inline const char *GetBuff() { return m_buff; }
 		inline int32_t Size() { return m_size; };
-		inline std::string ToString() { return std::string(m_buff, m_size); };
+		inline std::string ToString() { return m_size == 0 ? "" : std::string(m_buff, m_size); };
 	private:
 		template<int32_t N>
 		void InnerAppend(void *data)
@@ -51,6 +65,17 @@ namespace endian{
 				else
 					reverse<N>(m_buff + m_size, (const char*)data+(N-1));
 				m_size += N;
+			}
+		}
+		template<int32_t N>
+		void InnerPick(int32_t iOffSet, void *content)
+		{
+			if (iOffSet + N <= m_size)
+			{
+				if (IS_BIG_ENDIAN)
+					memcpy(content, m_buff + iOffSet, N);
+				else
+					reverse<N>((char*)content, m_buff + iOffSet + N - 1);
 			}
 		}
 	protected:

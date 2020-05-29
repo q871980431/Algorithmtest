@@ -160,7 +160,9 @@ IF(WIN32)
 	SET(THIRD_LIB_RELEASE
 	    optimized "ws2_32.lib"
 	    optimized "wsock32.lib"
+
 	)
+
 ENDIF(WIN32)
 
 IF(LINUX)

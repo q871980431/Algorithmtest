@@ -132,8 +132,10 @@ void BoostTest::TypeCastTest()
 	TestLink *pTestLink = pStLinkA;
 	TestLink *pTestLink1 = static_cast<TestLink *>(pStLinkA);
 	TestLink *pTestLinkF = (TestLink *)pStLinkA;
+	TestLink *pTestR = reinterpret_cast<TestLink*>(pStLinkA);
 	ECHO(":%p s", pStLinkA);
 	ECHO(":%p auto", pTestLink);
 	ECHO(":%p static_cast", pTestLink1);
 	ECHO(":%p forc cast", pTestLinkF);
+	ECHO(":%p forc cast", pTestR);
 }

@@ -14,9 +14,9 @@ extern "C" {
 			memset(pathBuff, 0, sizeof(pathBuff));
 #ifdef WIN32
 			GetModuleFileName(NULL, pathBuff, MAX_PATH);
-			ECHO("begin pathBuff = %s", pathBuff);
+			//ECHO("begin pathBuff = %s", pathBuff);
 			PathRemoveFileSpec(pathBuff);
-			ECHO("end pathBuff = %s", pathBuff);
+			//ECHO("end pathBuff = %s", pathBuff);
 			path = pathBuff;
 #elif  defined LINUX
 			SafeSprintf(pathBuff, sizeof(pathBuff), "/proc/self/exe");

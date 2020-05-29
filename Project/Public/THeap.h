@@ -51,7 +51,12 @@ public:
 	bool Insert(T &item)
 	{
 		if (_heapSize == _size)
-			return false;
+		{
+			if (!_new)
+				return false;
+			else
+				ExpanCapacity();
+		}
 		_items[_heapSize] = item;
 		FileterUp(_heapSize);
 		_heapSize++;
@@ -69,7 +74,7 @@ public:
 		return true;
 	}
 
-	bool Remove(T &item)
+	bool Remove(const T &item)
 	{
 		if (_heapSize == 0)
 			return false;
@@ -160,6 +165,16 @@ private:
 			FileterDown(parentPos);
 			parentPos--;
 		}
+	}
+
+	void ExpanCapacity()
+	{
+		s32 nowSize = _size * 2;
+		T *tmp = NEW T[nowSize]();
+		memcpy(tmp, _items, sizeof(T) * _size);
+		_size = nowSize;
+		DEL[] _items;
+		_items = tmp;
 	}
 private:
 	s32 _size;

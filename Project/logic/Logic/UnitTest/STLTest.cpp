@@ -4,17 +4,29 @@
 #include <map>
 #include "BigEndian.h"
 #include <memory>
+#include <mutex>
+#include "Tools.h"
+#include "Tools_time.h"
 
-UnitTestRegister<StlTest> test;
+
+UnitTestRegister<StlTest> stlTest;
 void StlTest::StartTest(core::IKernel *kernel)
 {
 	m_zoneIdKey = "113";
+	TestMapKey();
+	TestString();
 	TestKernelAsync(kernel);
 	TestAsyncQueue(kernel);
 	TestStrSqlite();
 	TestVectorAndSharedPtr();
 	TestMap();
 	TestOffSet();
+	TestLock();
+	TestLock2();
+	TestMapRErase();
+	TestSort(0);
+	TestSort(1);
+	TestSort(2);
 }
 
 void StlTest::TestKernelAsync(core::IKernel *kernel)
@@ -188,7 +200,56 @@ void StlTest::TestMapRErase()
 	{
 		players.emplace(i, i);
 	}
-		
+	std::vector<int32_t> vecPlayerIds;
+	for (int32_t i = 0; i < 10; i++)
+	{
+		vecPlayerIds.push_back(i);
+	}
+	std::set<int32_t> setPlayerIds(vecPlayerIds.begin(), vecPlayerIds.end());
+	for (auto &id : setPlayerIds)
+	{
+		ECHO("Id:%d", id);
+	}
+
+}
+
+void StlTest::TestVector()
+{
+	//typedef std::vector<std::string &> VecName;
+	//std::string tmp1("XP1");
+	//std::string &tmpR = tmp1;
+	//VecName vecName;
+	//vecName.push_back(tmpR);
+}
+
+int cmp(const void* a, const void* b)
+{
+	if (*(int*)a < *(int*)b)
+		return -1;
+	else if (*(int*)a > *(int*)b)
+		return 1;
+	else
+		return 0;
+}
+
+void StlTest::TestSort(s32 iType)
+{
+	s32 iNum = 1000000;
+
+	std::vector<s32> vec;
+	vec.reserve(iNum);
+
+	while (iNum--)
+		vec.push_back((s32)tools::Random());
+	s64 iNow = tools::GetTimeMillisecond();
+
+	if (iType == 0)
+		qsort(&vec[0], vec.size(), sizeof(int), cmp);
+	else if (iType == 1)
+		std::sort(vec.begin(), vec.end(), [](const auto& a, const auto& b) { return a < b; });
+	else if (iType == 2)
+		std::sort(vec.begin(), vec.end());
+	TRACE_LOG("type:%d, expends %ld ms", iType, tools::GetTimeMillisecond() - iNow);
 }
 
 uint64_t StlTest::StrToUl(std::string &strVal)
@@ -214,4 +275,105 @@ int32_t StlTest::GetIdentityKey(std::string &strIdentityName)
 		return 0;
 	std::string strSub = strIdentityName.substr(n+1);
 	return std::atoi(strSub.c_str());
+}
+
+void StlTest::TestString()
+{
+	std::string content = "this is a string";
+	size_t pos = content.find("as");
+	size_t fPos = content.find_first_of("as");
+	pos = content.find("is");
+	content.insert(pos + strlen("is"), "a");
+	ECHO("content:%s", content.c_str());
+	size_t iBegin = fPos;
+	//std::string *tenR = &content;
+	size_t &pTmp = pos;
+	size_t iEnd = pos;
+	ECHO("iBegin:%p, iEnd:%p iP:%p, Diff = %zu, ", &iBegin, &iEnd, &pTmp, &iEnd - &iBegin);
+	const char *pConstTmp = "\r\n23";
+	int32_t iVal = atoi(pConstTmp);
+	ECHO("val:%d", iVal);
+	std::ostringstream osStream;
+	osStream << "test";
+	osStream.clear();
+	const char *contentStream = osStream.str().c_str();
+	ECHO("Content:%s", contentStream);
+}
+
+void StlTest::TestLock()
+{
+	try
+	{
+		CanLock lock;
+		std::lock_guard<CanLock> lockGuard(lock);
+	}
+	catch (const std::exception&e)
+	{
+		ECHO("Exception:%s", e.what());
+	}
+	ECHO("No Try");
+	CanLock lock;
+	std::lock_guard<CanLock> lockGuard(lock);
+	int32_t i = 3;
+	ECHO("i:%d", i);
+}
+
+void StlTest::TestLock2()
+{
+	std::lock_guard<std::recursive_mutex> lockGuard(m_mutex);
+	ECHO("GetLock 1");
+	{
+		std::lock_guard<std::recursive_mutex> lockGuard1(m_mutex);
+		ECHO("GetLock 2");
+	}
+	ECHO("Sucesss");
+}
+
+void StlTest::TestMapKey()
+{
+	std::map<int32_t, int32_t> playerIds;
+	playerIds.emplace(1, 1);
+	playerIds.emplace(1, 2);
+	HostScoreOrderMap hostMap(StlTest::CompareGreater);
+	std::string key1 = "xuping";
+	std::string key2 = "";
+	hostMap.emplace(key1, 1);
+	hostMap.emplace("y", 3);
+	hostMap.emplace("y", 4);
+	hostMap.emplace(key2, 2);
+	hostMap.emplace(key2, 3);
+	auto iter = hostMap.find(key2);
+	if (iter != hostMap.end())
+	{
+		ECHO("Find Key2:%s", iter->first.c_str());
+		hostMap.erase(iter);
+		auto tmpIter = hostMap.find(key2);
+		if (tmpIter == hostMap.end())
+		{
+			ECHO("Don't find key2 :%s", key2.c_str());
+		}
+	}
+
+}
+
+bool StlTest::CompareGreaterInner(unsigned char *pLeftBuff, int32_t iLeftLen, unsigned char *pRightBuff, int32_t iRightLen)
+{
+	if (iLeftLen == 0)
+		return false;
+	if (iRightLen == 0)
+		return false;
+
+	if (iLeftLen > iRightLen)
+		iLeftLen = iRightLen;
+
+	while (iLeftLen > 0 && (*pLeftBuff == *pRightBuff))
+	{
+		pLeftBuff++;
+		pRightBuff++;
+		iLeftLen--;
+	}
+	if (iLeftLen == 0)
+		return false;
+
+	return *pLeftBuff > *pRightBuff;
 }

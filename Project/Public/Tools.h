@@ -4,6 +4,7 @@
 #ifdef WIN32
 #include <shlwapi.h>
 #include<process.h>
+#include <tchar.h>
 #endif
 #ifdef LINUX
 #include<libgen.h>
@@ -196,8 +197,8 @@ namespace tools{
 
 #ifdef WIN32
         SafeSprintf(filePath, sizeof(filePath), "%s/%s.dll", path, dllName);
-        HINSTANCE instance = ::LoadLibrary(filePath);
-        ASSERT(instance != NULL, "open %s error %d", filePath, errno);
+		HINSTANCE instance = ::LoadLibrary(filePath);
+        ASSERT(instance != NULL, "open %s error %d, lasterror:%d", filePath, errno, GetLastError());
         fun = (FUN)::GetProcAddress(instance, funName);
         ASSERT(fun, "get function error");
 #endif

@@ -47,4 +47,7 @@ s32 __SafeSprintf(char *buf, s32 size, const char *fromat, ...)
 	return ret;
 }
 
+inline constexpr const char *getFileName(const char *filePath, const int len);
+constexpr const char *getFileName(const char *filePath, const int len){return len < 0 ? filePath : (filePath[len] == '/') ? filePath + len + 1 : getFileName(filePath, len - 1);}
+
 #endif

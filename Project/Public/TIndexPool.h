@@ -4,33 +4,22 @@
 #include "THeap.h"
 namespace tlib
 {
-
+	const s32 INVALID_INDEX = -1;
 	class IndexNode
 	{
 	public:
 		inline s32 GetIndex() { return _index; };
 		inline void SetIndex(s32 index) { _index = index; };
 	private:
-		s32 _index{-1};
+		s32 _index{ INVALID_INDEX };
 	};
 
-	template<typename T, s32 InitSize=1024>
+	template<typename T, s32 BatchNum=64>
 	class IndexPool
 	{
-		
-		struct Block 
-		{
-			//Chunk[]
-		};
-		struct Chunk 
-		{
-			s32 mark;
-			s8 buff[sizeof(T)];
-			Block *parent;
-		};
 	public:
 		IndexPool(){
-			InitHeapCapacity(InitSize);
+			InitHeapCapacity(BatchNum);
 		}
 
 		~IndexPool()
@@ -46,12 +35,11 @@ namespace tlib
 			s32 index = 0;
 			if (!_indexHeap->Delete(index))
 			{
-				s32 capacity = _indexHeap->GetCapacity();
-				ExpandCapacity(capacity + InitSize);
+				ExpandCapacity(BatchNum);
 				if (!_indexHeap->Delete(index))
 					return nullptr;
 			}
-			ASSERT(_nodes[index] != nullptr, "error");
+			ASSERT(_nodes[index]->GetIndex() == INVALID_INDEX, "error");
 			T *ret = new(_nodes[index]) T(args...);
 			ret->SetIndex(index);
 			return ret;
@@ -68,45 +56,24 @@ namespace tlib
 		{
 			s32 index = t->GetIndex();
 			t->~T();
+			t->SetIndex(INVALID_INDEX);
 			_indexHeap->Insert(index);
 		}
 
 	private:
-		void ExpandCapacity(s32 expaCount)
+		void ExpandCapacity(s32 expandNum)
 		{
 			s32 oldSize = _nodes.size();
-			if (expaCount > _indexHeap->GetCapacity())
-			{
-				s32 tmp = ((expaCount % InitSize) == 0) ? 0 : 1;
-				expaCount = ((expaCount / InitSize) + tmp) * InitSize;
-				HeapExpaCapacity(expaCount);
-			}
-			s32 add = expaCount - oldSize;
-			for (s32 i = 0; i < add; i++)
+			for (s32 i = 0; i < expandNum; i++)
 			{
 				T *temp = (T*)malloc(sizeof(T));
 				if (temp != nullptr)
 				{
-					_nodes[oldSize] = temp;
+					_nodes.push_back(temp);
 					_indexHeap->Insert(oldSize);
 					oldSize++;
 				}
 			}
-		}
-
-		void HeapExpaCapacity(s32 expaCount)
-		{
-			s32 capacity = _indexHeap->GetCapacity();
-			s32 add = expaCount - capacity;
-			for (s32 i = 0; i < add; i++)
-				_nodes.push_back(nullptr);
-
-			THeap<s32> *tempHeap = NEW THeap<s32>(expaCount);
-			s32 unuseIndex;
-			while (_indexHeap->Delete(unuseIndex))
-				tempHeap->Insert(unuseIndex);
-			DEL _indexHeap;
-			_indexHeap = tempHeap;
 		}
 
 		void InitHeapCapacity(s32 capacity)

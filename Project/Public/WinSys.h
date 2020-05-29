@@ -30,7 +30,7 @@ typedef short s16;
 typedef int32_t s32;
 typedef int64_t s64;
 
-#define LOG_BUFF_SIZE   2048
+#define LOG_BUFF_SIZE   64 * 1024
 //#define SafeSprintf sprintf_s
 #define MSLEEP(n)   Sleep(n)
 #define GLOBAL_VAR_INT_MAX 

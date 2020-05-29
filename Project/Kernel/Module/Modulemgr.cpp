@@ -46,6 +46,14 @@ bool Modulemgr::LoadModule()
     for (auto iter : config->vecModules)
     {
 		SafeSprintf(path, sizeof(path), "%s/%s", tools::GetAppPath(), config->strModulePath.c_str());
+		//SafeSprintf(path, sizeof(path), "%s", tools::GetAppPath());
+
+		//HINSTANCE instance = ::LoadLibraryEx("D:\\build\\Algorithmtest\\windows\\RelWithDebInfo\\UnitTest.dll", NULL, DONT_RESOLVE_DLL_REFERENCES);
+		//if (instance == nullptr)
+		//{
+		//	int32_t i = 0;
+		//	TRACE_LOG("i:%d", i);
+		//}
         GetModuleFun fun = tools::LoadDynamicFun<GetModuleFun>(path, iter.c_str(), GET_LOGIC_FUN_NAME);
         if (fun == nullptr)
             return false;

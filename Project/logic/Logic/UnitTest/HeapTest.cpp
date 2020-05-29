@@ -19,7 +19,7 @@ void HeapTest::TestHeapRemove(core::IKernel *kernel)
 	typedef THeap<s32> IDHeap;
 	IDHeap idHeap(10);
 	std::vector<int32_t> ids;
-	for (int32_t i = 0; i < 10; i++)
+	for (int32_t i = 0; i < 30; i++)
 	{
 		idHeap.Insert(i);
 		ids.push_back(i);
