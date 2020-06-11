@@ -16,7 +16,6 @@
 	std::stringstream ostream;\
 	ostream << A << " don't eq " << B << "File:" << __FILE__ << "Line:" << __LINE__;\
 	std::string tmp(ostream.str());\
-	std::cout << tmp << std::endl; \
 	THREAD_LOG("Test","TEST EQ FAILED:%s", tmp.c_str());\
 }
 

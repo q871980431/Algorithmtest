@@ -1,6 +1,8 @@
 #include "ByteEndianTest.h"
 #include "BigEndian.h"
 #include "UnitTest.h"
+#include "Tools.h"
+#include <map>
 
 UnitTestRegister<ByteEndianTest> byteEndianTest;
 void ByteEndianTest::StartTest(core::IKernel *kernel)
@@ -41,6 +43,70 @@ void ByteEndianTest::TestBigEndianTemplat()
 	{
 		ECHO("C_Str != data");
 	}
+	TestBigEndianMap();
+
+	for (int32_t i = 0; i < 100000; i++)
+	{
+		endian::BigEndian<32> testEndian;
+		int32_t tmpA = tools::GetRandom(10, 1000000);
+		int64_t tmpB = ((int64_t)tools::GetRandom(10000000, 100000000)) * 10000LL;
+		int32_t tmpC = tools::GetRandom(10, 10000000);
+		testEndian.Append(tmpA, tmpB, tmpC);
+
+		endian::BigEndian<32> testEndianA(testEndian.ToString());
+		int64_t tmpD = tmpB + tools::GetRandom(10, 100000) + tmpC;
+		testEndianA.Append(tmpD);
+		endian::BigEndian<32> testEndianB(testEndianA.ToString());
+		int32_t val = tools::GetRandom(0, 4);
+		switch (val)
+		{
+		case 0:
+		{
+			int32_t tmp = 0;
+			testEndianB.Pick(0, tmp);
+			if (tmp != tmpA)
+			{
+				ASSERT(false, "error");
+			}
+		}
+		break;
+		case 1:
+		{
+			int64_t tmp = 0;
+			testEndianB.Pick(sizeof(int32_t), tmp);
+			if (tmp != tmpB)
+			{
+				ASSERT(false, "error");
+			}
+		}
+		break;
+		case 2:
+		{
+			int32_t tmp = 0;
+			testEndianB.Pick(sizeof(int32_t) + sizeof(int64_t), tmp);
+			if (tmp != tmpC)
+			{
+				ASSERT(false, "error");
+			}
+		}
+		break;
+		case 3:
+		{
+			int64_t tmp = 0;
+			testEndianB.Pick(sizeof(int32_t) + sizeof(int64_t) + sizeof(int32_t), tmp);
+			if (tmp != tmpD)
+			{
+				ASSERT(false, "error");
+			}
+		}
+		break;
+		default: {
+			ASSERT(false, "error");
+		}
+			break;
+		}
+	}
+	ECHO("big endian test ok");
 
 }
 
@@ -70,6 +136,43 @@ void ByteEndianTest::TestModule()
 	ASSERT(GETBIT(i, 2), "OK");
 }
 
+typedef bool(*SCORE_COMP_FUN)(const std::string &left, const std::string &right);
+typedef std::map<std::string, HostNode, SCORE_COMP_FUN> HostScoreOrderMap;
+
+void ByteEndianTest::TestBigEndianMap()
+{
+	HostScoreOrderMap map(CompareGreater);
+	for (s32 i = 0; i < 10000; i++)
+	{
+		HostNode node;
+		node.hostId = i;
+		endian::BigEndian<32> bigEndian;
+		int32_t tmpA = tools::GetRandom(10, 1000000);
+		int64_t tmpB = ((int64_t)tools::GetRandom(10000000, 100000000)) * 10000LL;
+		int32_t tmpC = tools::GetRandom(10, 10000000);
+		bigEndian.Append(i, tmpA, tmpB, tmpC);
+		node.score = bigEndian.ToString();
+		map.emplace(node.score, node);
+	}
+
+	s32 mark = map.size() - 1;
+	for (auto &iter : map)
+	{
+		auto findIter = map.find(iter.first);
+		ASSERT(findIter != map.end(), "error");
+		if (findIter->second.hostId != iter.second.hostId)
+		{
+			ASSERT(false, "error");
+		}
+		if (iter.second.hostId != mark)
+		{
+			ASSERT(false, "error");
+		}
+		mark--;
+	}
+	ECHO("sort success");
+}
+
 bool ByteEndianTest::CompareInner(unsigned char *buff1, int32_t len1, unsigned char *buff2, int32_t size2)
 {
 	if (len1 > size2)
@@ -81,6 +184,8 @@ bool ByteEndianTest::CompareInner(unsigned char *buff1, int32_t len1, unsigned c
 		buff2++;
 		len1--;
 	}
+	if (len1 == 0)
+		return false;
 
 	return *buff1 > *buff2;
 }

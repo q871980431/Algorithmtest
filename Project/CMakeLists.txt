@@ -18,20 +18,18 @@ ENDIF(WIN32)
 
 IF(LINUX)
 	SET(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/linux")
-	#SET(CMAKE_BUILD_TYPE "Debug")
 	LINK_DIRECTORIES("${PROJECT_BINARY_DIR}/linux")
-	#SET(CMAKE_C_FLAGS	"-std=c++0x -Wall -lpthread -rdynamic -ldl -Dlinux -lcurl -lmysqlclient -lTNavigation")
-		SET(CMAKE_C_FLAGS "-fPIC")
-        SET(CMAKE_CXX_FLAGS " -std=c++11 -Wall -DLINUX -pthread -rdynamic -ldl -lrt")
-	#SET(CMAKE_C_FLAGS_DEBUG	"-g -D_DEBUG -o0 -pg -L${PROJECT_SOURCE_DIR}/Thridlibrary/debug/linux")
-        SET(CMAKE_C_FLAGS_DEBUG "-g -D_DEBUG -O -pg -L${PROJECT_SOURCE_DIR}/Thridlibrary/linux")
-	#SET(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -O2 _L${PROJECT_SOURCE_DIR}/Thridlibrary/release/linux")
-	SET(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -O2 _L${PROJECT_SOURCE_DIR}/Thridlibrary/linux")
-	#SET(CMAKE_C_FLAGS_RELEASE "-O3 _L${PROJECT_SOURCE_DIR}/Thridlibrary/release/linux")
-	SET(CMAKE_C_FLAGS_RELEASE "-O3 _L${PROJECT_SOURCE_DIR}/Thridlibrary/linux")
+	SET(CMAKE_C_FLAGS "-fPIC")
+	SET(CMAKE_CXX_FLAGS " -std=c++11 -Wall -Werror -Wno-error=unused-variable  -fexceptions -fnon-call-exceptions ")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLINUX -pthread -rdynamic -ldl -lrt -Wl,-rpath,./ -Wl,-rpath-link,${PROJECT_BINARY_DIR}/linux/")
+	SET(CMAKE_CXX_FLAGS_DEBUG "-D_DEBUG -g -O -pg -L${PROJECT_SOURCE_DIR}/Thridlibrary/linux/")
+	SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -O2 -L${PROJECT_SOURCE_DIR}/Thridlibrary/linux/")
+	SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -L${PROJECT_SOURCE_DIR}/Thridlibrary/linux/")
 	MESSAGE(STATUS "Linux")
 ENDIF(LINUX)
 
+
+SET(THIRDLIBRARY_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Thridlibrary/include")
 IF(WIN32)
 SET(THIRD_LIBRARIES_DEBUG_DIR
 	"${PROJECT_SOURCE_DIR}/Thridlibrary/windows/debug"
@@ -48,11 +46,11 @@ SET(OBJECT_LIB
 )
 
 SET(KERNEL_LIBD
-	debug "${PROJECT_BINARY_DIR}/windows/debug/NetGrid.lib"
+	debug "${THIRD_LIBRARIES_DEBUG_DIR}/GridSeed.lib"
 )
 
 SET(KERNEL_LIB
-	optimized "${PROJECT_BINARY_DIR}/windows/Release/NetGrid.lib"
+	optimized "${THIRD_LIBRARIES_RELEASE_DIR}/GridSeed.lib"
 )
 
 
@@ -81,55 +79,21 @@ SET(KERNEL_LIB
 ENDIF(LINUX)
 
 SET(API_DIR
-	"${PROJECT_SOURCE_DIR}/API/"
+	"${THIRDLIBRARY_INCLUDE_DIR}/GridSeed/include"
 )
-SET(API
-	"${PROJECT_SOURCE_DIR}/API/IKernel.h"
-	"${PROJECT_SOURCE_DIR}/API/IModule.h"	
+SET( API
+	"${API_DIR}/IKernel.h"
+	"${API_DIR}/IModule.h"	
 )
 
 SET(PUBLIC_DIR
 	"${PROJECT_SOURCE_DIR}/Public"
 )
 file(GLOB PUBLIC ${PUBLIC_DIR}/*.cpp ${PUBLIC_DIR}/*.h)
-#AUX_SOURCE_DIRECTORY( )
-#MESSAGE("Public files${PUBLIC}")
-SET(PUBLIC2
-	"${PUBLIC_DIR}/MultiSys.h"
-	"${PUBLIC_DIR}/LinSys.h"
-	"${PUBLIC_DIR}/WinSys.h"
-	"${PUBLIC_DIR}/Tools.h"
-	"${PUBLIC_DIR}/Tools.cpp"
-	"${PUBLIC_DIR}/Singleton.h"
-	"${PUBLIC_DIR}/CDumper.h"
-	"${PUBLIC_DIR}/CDumper.cpp"
-	"${PUBLIC_DIR}/IStream.h"
-	"${PUBLIC_DIR}/TString.h"
-	"${PUBLIC_DIR}/CircularBuffer.h"
-	"${PUBLIC_DIR}/CircularQueue.h"
-	"${PUBLIC_DIR}/IReader.h"
-	"${PUBLIC_DIR}/TDynArray.h"
-	"${PUBLIC_DIR}/TList.h"
-	"${PUBLIC_DIR}/TDynPool.h"
-	"${PUBLIC_DIR}/XmlReader.cpp"
-	"${PUBLIC_DIR}/XmlReader.h"
-    "${PUBLIC_DIR}/Convert.h"
-    "${PUBLIC_DIR}/Tools_time.h"
-    "${PUBLIC_DIR}/Tools_time.cpp"
-    "${PUBLIC_DIR}/BitMark.h"	
-    "${PUBLIC_DIR}/Tools_file.h"
-    "${PUBLIC_DIR}/Tools_file.cpp"
-    "${PUBLIC_DIR}/TCallBack.h"	
-    "${PUBLIC_DIR}/Tools_Net.cpp"
-    "${PUBLIC_DIR}/Tools_Net.h"		
-)
 SET(TINYXML_DIR
 	"${PUBLIC_DIR}/tinyxml2"
 )
-SET(TINYXML
-	"${TINYXML_DIR}/tinyxml2.h"
-	"${TINYXML_DIR}/tinyxml2.cpp"
-)
+FILE(GLOB_RECURSE TINYXML ${TINYXML_DIR}/*.*)
 SET(2D_DIR
 	"${PUBLIC_DIR}/2D"
 )
@@ -138,17 +102,10 @@ SET(2D
 	"${2D_DIR}/Vector.h"
 )
 
-SET(COMMON_TIME_DIR
-	"${PUBLIC_DIR}/time/"
-)
-SET(COMMON_TIME
-)
-
+SET(COMMON_TIME_DIR "${PUBLIC_DIR}/time/")
+FILE(GLOB_RECURSE COMMON_TIME ${COMMON_TIME_DIR}/*)
 
 MESSAGE(STATUS ${PUBLIC})
 
-SET(THIRD_LIBRARIES_INCLUDE_DIR
-	"${PROJECT_SOURCE_DIR}/Thridlibrary/include"
-)
-ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/Kernel/)
+SET(THIRD_LIBRARIES_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/Thridlibrary/include")
 ADD_SUBDIRECTORY(${PROJECT_SOURCE_DIR}/logic/)
